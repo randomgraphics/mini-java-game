@@ -1,0 +1,4 @@
+@echo off
+set JAVA_EXECUTABLE="@Java_JAVA_EXECUTABLE@"
+set JAR_FILE="@JAR_FILE@"
+%JAVA_EXECUTABLE% -cp %JAR_FILE% Game
