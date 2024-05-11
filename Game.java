@@ -11,7 +11,7 @@ class Actor {
     }
 
     public void processCommand(Player player, String command, String[] args) {
-        if ("lookat".equals(command)) {
+        if ("l".equals(command) || "look".equals(command)) {
             System.out.println(getDescription());
         } else {
             System.out.println(String.format("%s does't not understand the command %s.", name, command));
@@ -50,8 +50,6 @@ class Room extends Actor {
             go(player, eastExit);
         } else if ("w".equals(command)) {
             go(player, westExit);
-        } else if ("l".equals(command) || "look".equals(command)) {
-            System.out.println(getDescription());
         } else {
             super.processCommand(player, command, args);
         }
@@ -83,12 +81,11 @@ class BasementHallway extends Room {
 }
 
 class storageroom extends Room{
-public storageroom(){
-name = "storageroom";
-description = "You are at the storageroom, there is a box with lock on it, and a closet, bsement hallway is at west side ";
+    public storageroom(){
+	name = "storageroom";
+	description = "You are at the storageroom, there is a box with lock on it, and a closet, bsement hallway is at west side ";
+    }
 }
-}
-
 
 class staircase extends Room {
     public staircase(){
@@ -141,6 +138,9 @@ public class Game {
         // Create a scanner to read user input
         Scanner scanner = new Scanner(System.in);
 
+	// Before game runs, print welcome screen to let player know how to play the game.
+	printWelcome();
+	    
         // Run the game loop
         boolean gameOver = false;
         while (!gameOver) {
@@ -154,6 +154,8 @@ public class Game {
             if ("quit".equals(commandName)) {
                 System.out.println("Game Over!"); // if user enter "quit" game over= true 
                 gameOver = true;
+	    } else if ("help".equals(commandName)) {
+		printWelcome();
             } else {
                 player.currentRoom.processCommand(player, commandName, commandArgs); //need to use current room to process command 
             }
@@ -193,5 +195,14 @@ storageroom.westExit = BasementHallway;
 
         // Returns the living room as the starting room for the player
         return livingRoom;
+    }
+
+    static void printWelcome() {
+	// print welcome screen and simple game tutorial.
+	System.out.println("line 1");
+	System.out.println("line 2");
+	System.out.println("line 3");
+	System.out.println("line 4");
+	System.out.println("You can print this screen at any time during the game by typing \"help\" command");
     }
 }
