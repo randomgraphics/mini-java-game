@@ -158,10 +158,10 @@ class Room extends Actor {
             go(player, westExit);
 	    } else if ("search".equals(command)) {
             listInventory();
-    	// handle command in form of "target.action"
         } else if ("h".equals(command) || "help".equals(command)) {
             System.out.println("TODO: print help text for the current room, like list all available commands.");
-	    } else if (command.contains(".")) {
+    	// handle command in form of "target.action"
+        } else if (command.contains(".")) {
     	    String targetName = findSubstringBeforeDot(command); // retrieve the target.
     	    String actionName = findSubstringAfterDot(command);  // retrieve the action. 
             Actor target = findInventory(targetName);
