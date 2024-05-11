@@ -1,5 +1,6 @@
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 // Base class of everything in the game world
 class Actor {
@@ -9,7 +10,7 @@ class Actor {
     public ArrayList<Actor> inventory = new ArrayList<Actor>();
 	
     public String getDescription() {
-        return description;
+        return description + listInventory();
     }
 
     public void processCommand(Player player, String command, String[] args) {
@@ -20,22 +21,31 @@ class Actor {
         }
     }
 
-    public void listInventory() {
-	    // TODO: print all items in the inventory.
-	    System.out.println(...);
+    // Return a string of all items in the inventory.
+    public String listInventory() {
+        // TODO: compose a string of all items in the inventory, then return it.
+        // example: " There are 3 items in the inventory: key, letter, and coin."
+        // if the inventory is empty, return empty string "".
+        return "";
     }
 
     public Actor findInventory(String name) {
         // Search the inventory for item with specific name.
         // If found, returns that item. Othewise, null.
-        for (int i = 0; i < inventory.length(); i++) {
-            if (inventory[i].name == name) {
+        for (int i = 0; i < inventory.size(); i++) {
+            if (inventory.get(i).name == name) {
                 // return the first item with the name.
-                return inventory[i];
+                return inventory.get(i);
             }
         }
         // there's no item named as "name". return null pointer.
         return null;
+    }
+
+    public void removeItemFromInventory(Actor item) {
+        // remove the item from the inventory.
+        // this command will do nothing, if the item is not in the inventory.
+        inventory.remove(item);
     }
 
     public String findSubstringBeforeDot(String s) {
@@ -43,7 +53,7 @@ class Actor {
         //    example: for "abc.def", the search should return 3.
         int dotPosition = -1;
         for(int i = 0; i < s.length(); ++i) {
-            if ('.' == s[i]) {
+            if ('.' == s.charAt(i)) {
                 dotPosition = i;
                 break;
             }
@@ -58,7 +68,7 @@ class Actor {
         
         // 4. the return a substring from the first letter to the letter before the dot.
         //    example: for "abc.def", return substring [0, 2].
-        return s.substr(0, dotPosition); // 2nd argument of substr() is the length of the substring.
+        return s.substring(0, dotPosition); // 2nd argument of substr() is the length of the substring.
     }
 
     public String findSubstringAfterDot(String s) {
@@ -71,15 +81,10 @@ class Player extends Actor {
     public Room currentRoom;
 }
 
-class Container extents Actor {
+class Container extends Actor {
     public Container() {
     	name = "...";
-	description = "This is a container.";
-    }
-
-    public String getDescription() {
-        System.out.println(description + " It is opened. It contains the following items:");
-        listInventory();
+	    description = "This is a container.";
     }
 
     public void processCommand(Player player, String command, String[] args) {
@@ -87,19 +92,20 @@ class Container extents Actor {
             // The take command has 1 arguments: item.
                 // It takes the item from current actor's inventory list, move it into the player's inventory.
             // for example: "container.take key" will move the "key", if exist, from container to player.
-        if (args.length < 1) {
-           // print an error.
-           System.out.println("What do you want to take?");
-        } else {
-           String itemName = args[0];
-           Actor target = findInventory(itemName);
-           if (null == target) {
-               // print error message.
-               System.out.println("....");
-           } else {
-               removeItemFromInventory(target);
-               player.inventory.add(target);
-           }
+            if (args.length < 1) {
+             // print an error.
+               System.out.println("What do you want to take?");
+            } else {
+               String itemName = args[0];
+               Actor target = findInventory(itemName);
+               if (null == target) {
+                   // print error message.
+                   System.out.println("....");
+               } else {
+                   removeItemFromInventory(target);
+                   player.inventory.add(target);
+               }
+            }
         // TODO: consider add put command to put items back to a container or a room.
         } else {
             super.processCommand(player, command, args);
@@ -111,7 +117,7 @@ class Letter extends Actor {
     public void processCommand(Player player, String command, String[] args) {
        if ("r".equals(command) || "read".equals(command)) {
            // TODO: read the content of the letter. print it out.
-       } else ("h".equals(command) || "help".equals(command)) {
+       } else if ("h".equals(command) || "help".equals(command)) {
            // TODO: print available commands of the letter.
        } else {
             super.processCommand(player, command, args);
@@ -148,20 +154,20 @@ class Room extends Actor {
         } else if ("w".equals(command)) {
             go(player, westExit);
 	    } else if ("search".equals(command)) {
-            // run the list inventory method defined in the parent class (Actor)
-	        listInventory(args);
+            listInventory();
     	// handle command in form of "target.action"
-        } else ("h".equals(command) || "help".equals(command)) {
+        } else if ("h".equals(command) || "help".equals(command)) {
             // TODO: print available commands of the room.
 	    } else if (command.contains(".")) {
     	    String targetName = findSubstringBeforeDot(command); // retrieve the target.
     	    String actionName = findSubstringAfterDot(command);  // retrieve the action. 
             Actor target = findInventory(targetName);
-	    if (null != target) {
+	        if (null != target) {
             // let the target to process the action.
             target.processCommand(player, actionName, args);
-	    else {
-		    System.out.println("There's no " + targetName + " found in current room");
+	        } else {
+		       System.out.println("There's no " + targetName + " found in current room");
+            } 
         } else {
             super.processCommand(player, command, args);
         }
@@ -174,14 +180,21 @@ class Room extends Actor {
             System.out.println("You entered the " + room.name);
             player.currentRoom = room;
             room.processCommand(player, "look", null);
-	} else if (hasRoomKey(player, room)) {
-	    room.lock = false; // mark the room as unlocked.
+	    } else if (room.hasKey(player)) {
+	        room.locked = false; // mark the room as unlocked.
             System.out.println("You unlocked the " + room.name);
             player.currentRoom = room;
             room.processCommand(player, "look", null);
         } else {
 	    System.out.println(room.name + "is locked. May be you need a key?");
-	}
+	    }
+    }
+
+    // Check if the player has key of the room
+    boolean hasKey(Player player) {
+        // the default implementation always return false,
+        // meaning there's no common key for general room.
+        return false;
     }
 }
 // set up a new room called living room 
@@ -201,12 +214,27 @@ class BasementHallway extends Room {
 
 class storageroom extends Room{
     public storageroom(){
-	name = "Storage Room";
-	description = "You are at the storageroom, there is a box with lock on it, and a closet, bsement hallway is at west side ";
+        name = "Storage Room";
+        description = "You are at the storageroom, there is a box with lock on it, and a closet, bsement hallway is at west side ";
+    }
+
+    public boolean hasKey(Player player) {
+        // check if the player has the key of the storage room.
+        Actor key = player.findInventory("Storage Room Key");
+        if (null == key) return false; // no item named "Storage Room Key" in player's inventory, return false.
+
+        // check if the key is an instance of StorageRoomKey.
+        if (key instanceof StorageRoomKey) {
+            // yes, this is indeed a StorageRoomKey. return true.
+            return true;
+        } else {
+            // no, this is something else just happen to be called "Storage Room Key". return false.
+            return false;
+        }
     }
 }
 
-class StorageRoomKey extents Actor {
+class StorageRoomKey extends Actor {
 	public StorageRoomKey() {
 		name = "Storage Room Key";
 		description = "...";
@@ -254,6 +282,7 @@ class bathroom extends Room {
         description = " You are in the bathroom, there is a shower room, toilet. Bedroom is on your west side";
     }
 }
+
 public class Game {
     public static void main(String[] args) {
         // setup the game level.
@@ -278,12 +307,13 @@ public class Game {
     
             // Process the user input
             if ("quit".equals(commandName)) {
-                System.out.println("Game Over!"); // if user enter "quit" game over= true 
-                gameOver = true;
-        } else if ("welcome".equals(commandName)) {
-            printWelcome();
-        } else {
-            player.currentRoom.processCommand(player, commandName, commandArgs); //need to use current room to process command 
+                    System.out.println("Game Over!"); // if user enter "quit" game over= true 
+                    gameOver = true;
+            } else if ("welcome".equals(commandName)) {
+                printWelcome();
+            } else {
+                player.currentRoom.processCommand(player, commandName, commandArgs); //need to use current room to process command 
+            }
         }
     }
 
@@ -318,13 +348,11 @@ public class Game {
         bedroom.southExit = guestbedroom;
         guestbedroom.northExit = bedroom;
 
-    	// Create a container with the storage room key in it. Then put the container into the guest betroom.
-    	Container container = new Contrainer;
+    	// Create a container with the storage room key in it. Then put the container into the guest bedroom.
+    	Container container = new Container();
     	StorageRoomKey key = new StorageRoomKey();
     	container.inventory.add(key);
-    	guestroom.inventory.add(container);
-
-        
+    	guestbedroom.inventory.add(container);
 
         // Returns the living room as the starting room for the player
         return livingRoom;
