@@ -21,8 +21,48 @@ class Actor {
     }
 
     public void listInventory() {
-	// TODO: print all items in the inventory.
-	System.out.println(...);
+	    // TODO: print all items in the inventory.
+	    System.out.println(...);
+    }
+
+    public Actor findInventory(String name) {
+        // Search the inventory for item with specific name.
+        // If found, returns that item. Othewise, null.
+        for (int i = 0; i < inventory.length(); i++) {
+            if (inventory[i].name == name) {
+                // return the first item with the name.
+                return inventory[i];
+            }
+        }
+        // there's no item named as "name". return null pointer.
+        return null;
+    }
+
+    public String findSubstringBeforeDot(String s) {
+        // 1. search all letters within the string to locate the position of the first ".".
+        //    example: for "abc.def", the search should return 3.
+        int dotPosition = -1;
+        for(int i = 0; i < s.length(); ++i) {
+            if ('.' == s[i]) {
+                dotPosition = i;
+                break;
+            }
+        }
+       
+        // 2. if there's no dot in the string, then return the whole string:
+        //    examole: for "abcd", return "abcd".
+        if (-1 == dotPosition) return s;
+        
+        // 3. for string like ".abcd", should return empty string "".
+        if (0 == dotPosition) return "";
+        
+        // 4. the return a substring from the first letter to the letter before the dot.
+        //    example: for "abc.def", return substring [0, 2].
+        return s.substr(0, dotPosition); // 2nd argument of substr() is the length of the substring.
+    }
+
+    public String findSubstringAfterDot(String s) {
+        return "";
     }
 }
 
@@ -34,7 +74,7 @@ class Player extends Actor {
 class Container extents Actor {
     public Container() {
     	name = "...";
-	    description = "This is a container.";
+	description = "This is a container.";
     }
 
     public String getDescription() {
@@ -62,9 +102,20 @@ class Container extents Actor {
            }
         // TODO: consider add put command to put items back to a container or a room.
         } else {
-                super.processCommand(player, command, args);
-            }
+            super.processCommand(player, command, args);
         }
+    }
+}
+
+class Letter extends Actor {
+    public void processCommand(Player player, String command, String[] args) {
+       if ("r".equals(command) || "read".equals(command)) {
+           // TODO: read the content of the letter. print it out.
+       } else ("h".equals(command) || "help".equals(command)) {
+           // TODO: print available commands of the letter.
+       } else {
+            super.processCommand(player, command, args);
+       } 
     }
 }
 
@@ -96,14 +147,16 @@ class Room extends Actor {
             go(player, eastExit);
         } else if ("w".equals(command)) {
             go(player, westExit);
-	} else if ("search".equals(command)) {
+	    } else if ("search".equals(command)) {
             // run the list inventory method defined in the parent class (Actor)
-	    listInventory(args);
-	// handle command in form of "target.action"
-	} else if (command.contains(".")) {
-	    String targetName = findSubstringBeforeDot(command); // retrieve the target.
-	    String actionName = findSubstringAfterDot(command);  // retrieve the action. 
-        Actor target = findInventory(targetName);
+	        listInventory(args);
+    	// handle command in form of "target.action"
+        } else ("h".equals(command) || "help".equals(command)) {
+            // TODO: print available commands of the room.
+	    } else if (command.contains(".")) {
+    	    String targetName = findSubstringBeforeDot(command); // retrieve the target.
+    	    String actionName = findSubstringAfterDot(command);  // retrieve the action. 
+            Actor target = findInventory(targetName);
 	    if (null != target) {
             // let the target to process the action.
             target.processCommand(player, actionName, args);
@@ -211,8 +264,8 @@ public class Game {
         // Create a scanner to read user input
         Scanner scanner = new Scanner(System.in);
 
-	// Before game runs, print welcome screen to let player know how to play the game.
-	printWelcome();
+    	// Before game runs, print welcome screen to let player know how to play the game.
+    	printWelcome();
 	    
         // Run the game loop
         boolean gameOver = false;
@@ -222,16 +275,15 @@ public class Game {
             String[] parts = input.split(" "); // break up user input using " "
             String commandName = parts[0]; 
             String[] commandArgs = Arrays.copyOfRange(parts, 1, parts.length);
-
+    
             // Process the user input
             if ("quit".equals(commandName)) {
                 System.out.println("Game Over!"); // if user enter "quit" game over= true 
                 gameOver = true;
-	    } else if ("help".equals(commandName)) {
-		printWelcome();
-            } else {
-                player.currentRoom.processCommand(player, commandName, commandArgs); //need to use current room to process command 
-            }
+        } else if ("welcome".equals(commandName)) {
+            printWelcome();
+        } else {
+            player.currentRoom.processCommand(player, commandName, commandArgs); //need to use current room to process command 
         }
     }
 
@@ -240,8 +292,8 @@ public class Game {
         // We'll setup a simple game level that contains 2 rooms, a living room and a bedroom.
         // the living room is on the east side, and the bedroom is on the west side.
         Room livingRoom = new LivingRoom();
-	Room storageroom = new storageroom();
-	storageroom.locked = true; // locke the storage room. so player can't go in by default.
+    	Room storageroom = new storageroom();
+	    storageroom.locked = true; // locke the storage room. so player can't go in by default.
         Room bedroom = new bedroom();
         Room kitchen = new kitchen();
         Room hallway = new hallway();
@@ -256,9 +308,9 @@ public class Game {
         staircase.upExit = hallway;
         staircase.downExit = BasementHallway;
         BasementHallway.upExit = staircase;
-BasementHallway.eastExit = storageroom;
-storageroom.westExit = BasementHallway;
-        hallway.southExit = kitchen;
+	    BasementHallway.eastExit = storageroom;
+	    storageroom.westExit = BasementHallway;        
+	    hallway.southExit = kitchen;
         kitchen.northExit = hallway;
         bedroom.westExit = hallway;
         bedroom.eastExit = bathroom;
@@ -266,11 +318,13 @@ storageroom.westExit = BasementHallway;
         bedroom.southExit = guestbedroom;
         guestbedroom.northExit = bedroom;
 
-	// Create a container with the storage room key in it. Then put the container into the guest betroom.
-	Container container = new Contrainer;
-	StorageRoomKey key = new StorageRoomKey();
-	container.inventory.add(key);
-	guestroom.inventory.add(container);
+    	// Create a container with the storage room key in it. Then put the container into the guest betroom.
+    	Container container = new Contrainer;
+    	StorageRoomKey key = new StorageRoomKey();
+    	container.inventory.add(key);
+    	guestroom.inventory.add(container);
+
+        
 
         // Returns the living room as the starting room for the player
         return livingRoom;
