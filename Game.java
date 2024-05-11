@@ -23,10 +23,13 @@ class Actor {
 
     // Return a string of all items in the inventory.
     public String listInventory() {
-        // TODO: compose a string of all items in the inventory, then return it.
         // example: " There are 3 items in the inventory: key, letter, and coin."
         // if the inventory is empty, return empty string "".
-        return "";
+        if (inventory.size() == 0) {
+            return "There are no items in the inventory.";
+        } else {
+            return "TODO: compose a string of all items in the inventory";
+        }
     }
 
     public Actor findInventory(String name) {
@@ -157,7 +160,7 @@ class Room extends Actor {
             listInventory();
     	// handle command in form of "target.action"
         } else if ("h".equals(command) || "help".equals(command)) {
-            // TODO: print available commands of the room.
+            System.out.println("TODO: print help text for the current room, like list all available commands.");
 	    } else if (command.contains(".")) {
     	    String targetName = findSubstringBeforeDot(command); // retrieve the target.
     	    String actionName = findSubstringAfterDot(command);  // retrieve the action. 
