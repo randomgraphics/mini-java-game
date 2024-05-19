@@ -10,7 +10,7 @@ class Actor {
     public ArrayList<Actor> inventory = new ArrayList<Actor>();
 
     public String getDescription() {
-        return description + listInventory();
+        return description + ". " + listInventory();
     }
 
     public void processCommand(Player player, String command, String[] args) {
@@ -26,9 +26,15 @@ class Actor {
         // example: " There are 3 items in the inventory: key, letter, and coin."
         // if the inventory is empty, return empty string "".
         if (inventory.size() == 0) {
-            return "There are no items in the inventory.";
+            return "There are no items in it.";
         } else {
-            return "KEY, item 2, item 3, flash light ";
+            // loop through inventory list, print out the name of each item.
+            String result = "There are " + inventory.size() + " items in this " + this.name + ":\n";
+            for (int i = 0; i < inventory.size(); i++) {
+                // append the name to the result string in a new line with 4 spaces indent.
+                result = result + "    " + inventory.get(i).name + "\n";
+            }
+            return result;
         }
     }
 
@@ -36,7 +42,8 @@ class Actor {
         // Search the inventory for item with specific name.
         // If found, returns that item. Othewise, null.
         for (int i = 0; i < inventory.size(); i++) {
-            if (inventory.get(i).name == name) {
+            // check if the name of the item is the same as the target name.
+            if (inventory.get(i).name.equals(name)) {
                 // return the first item with the name.
                 return inventory.get(i);
             }
@@ -55,11 +62,17 @@ class Actor {
         // 1. search all letters within the string to locate the position of the first
         // ".".
         // example: for "abc.def", the search should return 3.
-        int dotPosition = -1;
-        for (int i = 0; i < s.length(); ++i) {
-            if ('.' == s.charAt(i)) {
-                dotPosition = i;
-                break;
+        //
+        // position of string is 0-based, meaning the first letter is at position 0.
+        // For example: string "abc" has 3 letters and 4 positions: 0, 1, 2, 3.
+        // 0 is in front of the leter "a"
+        // 3 is after the letter "c", marks the end of the string.
+
+        int dotPosition = -1; // initialize the dot position to -1, meaning not found.
+        for (int i = 0; i < s.length(); i++) { // loop through all letters in the string.
+            if ('.' == s.charAt(i)) { // check if the letter is a dot.
+                dotPosition = i; // if it's a dot, then remember the position.
+                break; // stop the loop, no need to search further.
             }
         }
 
@@ -78,7 +91,36 @@ class Actor {
     }
 
     public String findSubstringAfterDot(String s) {
-        return "";
+        // 1. search dot position in the string.
+        int dotPosition = -1; // initialize the dot position to -1, meaning not found.
+        for (int i = 0; i < s.length(); i++) { // loop through all letters in the string.
+            if ('.' == s.charAt(i)) { // check if the letter is a dot.
+                dotPosition = i; // if it's a dot, then remember the position.
+                break; // stop the loop, no need to search further.
+            }
+        }
+
+        // 2. if there's no dot in the string, then return empty string:
+        // example: for "abcd", return "".
+        if (-1 == dotPosition)
+            return "";
+
+        // 3. if the dot is at the end of the string
+        // For example "abcd.", return empty string "".
+        //   s.length() = 5.
+        //  dotPosition = 4.
+        // So use (s.length() - 1) to determine if the dot is at the end of the string.
+        if (s.length() - 1 == dotPosition)
+            return "";
+
+        // 3. the return a substring from the first letter after the dot to the end of the string.
+        // Example: for "abc.def", return string "def".
+        // In this case, the dotPosition is 3
+        // the first leter after the dot is at position 4, which is 3 + 1.
+        int firstLetterAfterDot = dotPosition + 1;
+        // the substring end is the end of the entire string.
+        int subStringEnd = s.length();
+        return s.substring(firstLetterAfterDot, subStringEnd);
     }
 }
 
@@ -108,8 +150,9 @@ class Container extends Actor {
                 Actor target = findInventory(itemName);
                 if (null == target) {
                     // print error message.
-                    System.out.println(" you picked up this item");
+                    System.out.println(" Item " + itemName + " not found.");
                 } else {
+                    System.out.println("You took the " + itemName);
                     removeItemFromInventory(target);
                     player.inventory.add(target);
                 }
@@ -158,9 +201,8 @@ class Room extends Actor {
             go(player, eastExit);
         } else if ("w".equals(command)) {
             go(player, westExit);
-        } else if ("search".equals(command)) {
-            listInventory();
-            // handle command in form of "target.action"
+            // } else if ("search".equals(command)) {
+            // System.out.println(listInventory());
         } else if ("h".equals(command) || "help".equals(command)) {
             System.out.println(
                     "your goal is to find what has happened in this house, , s stands for going south, n stands for north, w, stands for going north, e stands for going eask, l means look around ");
@@ -227,16 +269,16 @@ class storageroom extends Room {
 
     public boolean hasKey(Player player) {
         // check if the player has the key of the storage room.
-        Actor key = player.findInventory("Storage Room Key");
+        Actor key = player.findInventory("StorageRoomKey");
         if (null == key)
-            return false; // no item named "Storage Room Key" in player's inventory, return false.
+            return false; // no item named "StorageRoomKey" in player's inventory, return false.
 
         // check if the key is an instance of StorageRoomKey.
         if (key instanceof StorageRoomKey) {
             // yes, this is indeed a StorageRoomKey. return true.
             return true;
         } else {
-            // no, this is something else just happen to be called "Storage Room Key".
+            // no, this is something else just happen to be called "StorageRoomKey".
             // return false.
             return false;
         }
@@ -245,7 +287,7 @@ class storageroom extends Room {
 
 class StorageRoomKey extends Actor {
     public StorageRoomKey() {
-        name = "Storage Room Key";
+        name = "StorageRoomKey";
         description = " This key might help you finish the game";
     }
 }
