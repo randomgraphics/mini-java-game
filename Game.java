@@ -28,7 +28,7 @@ class Actor {
         if (inventory.size() == 0) {
             return "There are no items in the inventory.";
         } else {
-            return "TODO: compose a string of all items in the inventory";
+            return "KEY, item 2, item 3, flash light ";
         }
     }
 
@@ -63,7 +63,7 @@ class Actor {
         }
        
         // 2. if there's no dot in the string, then return the whole string:
-        //    examole: for "abcd", return "abcd".
+        //    example: for "abcd", return "abcd".
         if (-1 == dotPosition) return s;
         
         // 3. for string like ".abcd", should return empty string "".
@@ -86,7 +86,7 @@ class Player extends Actor {
 
 class Container extends Actor {
     public Container() {
-    	name = "...";
+    	name = "box";
 	    description = "This is a container.";
     }
 
@@ -103,7 +103,7 @@ class Container extends Actor {
                Actor target = findInventory(itemName);
                if (null == target) {
                    // print error message.
-                   System.out.println("....");
+                   System.out.println(" you picked up this item");
                } else {
                    removeItemFromInventory(target);
                    player.inventory.add(target);
@@ -158,10 +158,10 @@ class Room extends Actor {
             go(player, westExit);
 	    } else if ("search".equals(command)) {
             listInventory();
-        } else if ("h".equals(command) || "help".equals(command)) {
-            System.out.println("TODO: print help text for the current room, like list all available commands.");
     	// handle command in form of "target.action"
-        } else if (command.contains(".")) {
+        } else if ("h".equals(command) || "help".equals(command)) {
+            System.out.println("your goal is to find what has happened in this house, , s stands for going south, n stands for north, w, stands for going north, e stands for going eask, l means look around ");
+	    } else if (command.contains(".")) {
     	    String targetName = findSubstringBeforeDot(command); // retrieve the target.
     	    String actionName = findSubstringAfterDot(command);  // retrieve the action. 
             Actor target = findInventory(targetName);
@@ -240,7 +240,7 @@ class storageroom extends Room{
 class StorageRoomKey extends Actor {
 	public StorageRoomKey() {
 		name = "Storage Room Key";
-		description = "...";
+		description = " This key might help you finish the game";
 	}
 }
 
@@ -363,10 +363,10 @@ public class Game {
 
     static void printWelcome() {
 	// print welcome screen and simple game tutorial.
-	System.out.println("line 1");
-	System.out.println("line 2");
-	System.out.println("line 3");
-	System.out.println("line 4");
+	System.out.println("s, stands for going for south, n, stands for going north");
+	System.out.println(" e, stands for going east, w, stands for going west ");
+	System.out.println("Your goal is to find out what has happened in this house");
+	System.out.println(" print h for help ");
 	System.out.println("You can print this screen at any time during the game by typing \"help\" command");
     }
 }
