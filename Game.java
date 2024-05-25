@@ -6,36 +6,67 @@ import java.util.ArrayList;
 class Actor {
     public String name; // the short name of the item
     public String description; // the long description text print to console when the player looks at the item
-
+    public boolean takeable = false; // if the item can be taken by the player. Default is false.
     public ArrayList<Actor> inventory = new ArrayList<Actor>();
 
     public String getDescription() {
-        return description + ". " + listInventory();
+        return description;
     }
 
     public void processCommand(Player player, String command, String[] args) {
-        if ("l".equals(command) || "look".equals(command)) {
+        if ("l".equals(command)) {
             System.out.println(getDescription());
         } else {
             System.out.println(String.format("%s does't not understand the command %s.", name, command));
         }
     }
 
+    public bool take(Actor who, String itemName) {
+        Actor item = findInventory(itemName);
+        if (null != item) {
+            if (item.takeable) {
+                inventory.remove(item);
+                who.inventory.add(item);
+                return true;
+            } else {
+                System.out.println("The " + itemName + " is not movable. You can't take it into your pocket.");
+                return false;
+            }
+        }
+        // The take command has 1 arguments: item.
+        // It takes the item from current actor's inventory list, move it into the
+        // player's inventory.
+        // for example: "container.take key" will move the "key", if exist, from
+        // container to player.
+        if (args.length < 1) {
+            // print an error.
+            System.out.println("What do you want to take?");
+        } else {
+            String itemName = args[0];
+            Actor target = findInventory(itemName);
+            if (null == target) {
+                // print error message.
+                System.out.println(" Item " + itemName + " not found.");
+            } else {
+                System.out.println("You took the " + itemName);
+                this.inventory.remove(target);
+                who.inventory.add(target);
+            }
+        }
+
     // Return a string of all items in the inventory.
     public String listInventory() {
-        // example: " There are 3 items in the inventory: key, letter, and coin."
-        // if the inventory is empty, return empty string "".
-        if (inventory.size() == 0) {
-            return "There are no items in it.";
-        } else {
-            // loop through inventory list, print out the name of each item.
-            String result = "There are " + inventory.size() + " items in this " + this.name + ":\n";
-            for (int i = 0; i < inventory.size(); i++) {
-                // append the name to the result string in a new line with 4 spaces indent.
-                result = result + "    " + inventory.get(i).name + "\n";
+        String result = "";
+        for (int i = 0; i < inventory.size(); i++) {
+            if (0 == i) {
+                // This is the first item in the list. No need to insert a comma.
+                result = inventory.get(i).name;
+            } else {
+                // append the name to the result string with a comma in front.
+                result = result + ", " + inventory.get(i).name;
             }
-            return result;
         }
+        return result;
     }
 
     public Actor findInventory(String name) {
@@ -50,12 +81,6 @@ class Actor {
         }
         // there's no item named as "name". return null pointer.
         return null;
-    }
-
-    public void removeItemFromInventory(Actor item) {
-        // remove the item from the inventory.
-        // this command will do nothing, if the item is not in the inventory.
-        inventory.remove(item);
     }
 
     public String findSubstringBeforeDot(String s) {
@@ -107,13 +132,14 @@ class Actor {
 
         // 3. if the dot is at the end of the string
         // For example "abcd.", return empty string "".
-        //   s.length() = 5.
-        //  dotPosition = 4.
+        // s.length() = 5.
+        // dotPosition = 4.
         // So use (s.length() - 1) to determine if the dot is at the end of the string.
         if (s.length() - 1 == dotPosition)
             return "";
 
-        // 3. the return a substring from the first letter after the dot to the end of the string.
+        // 3. the return a substring from the first letter after the dot to the end of
+        // the string.
         // Example: for "abc.def", return string "def".
         // In this case, the dotPosition is 3
         // the first leter after the dot is at position 4, which is 3 + 1.
@@ -127,6 +153,68 @@ class Actor {
 // Represents the player in the game
 class Player extends Actor {
     public Room currentRoom;
+
+    public void processCommand(String command, String[] args) {
+        // for moving round the room
+        if ("n".equals(command)) {
+            currentRoom.enter(this, currentRoom.northExit);
+        } else if ("s".equals(command)) {
+            currentRoom.enter(this, currentRoom.southExit);
+        } else if ("u".equals(command)) {
+            currentRoom.enter(this, currentRoom.upExit);
+        } else if ("d".equals(command)) {
+            currentRoom.enter(this, currentRoom.downExit);
+        } else if ("e".equals(command)) {
+            currentRoom.enter(this, currentRoom.eastExit);
+        } else if ("w".equals(command)) {
+            currentRoom.enter(this, currentRoom.westExit);
+        } else if ("i".equals(command)) {
+            System.out.println("You have the following items in your inventory: " + listInventory());
+        } else if ("t".equals(command)) {
+            take(args);
+        } else if ("l".equals(command)) {
+            look(args);
+        } else if ("h".equals(command) || "help".equals(command)) {
+            System.out.println(
+                    "Your goal is to find what has happened in this house. You can use the following commands:\n" +
+                    "   h or help - print this help message\n" +
+                    "   q or quit - quit the game\n" +
+                    "   n - go to the north\n" +
+                    "   s - go to the south\n" +
+                    "   e - go to the east\n" +
+                    "   w - go to the west\n" +
+                    "   u - go up\n" +
+                    "   d - go down\n" +
+                    "   l - look around or look at something.\n" +
+                    "   i - list all items in your inventory\n" +
+                    "   t - take an item in a room or in a container\n" +
+                    "   . - perform an action on an item in the room\n" +
+                    "   drop - drop an item in the room\n" +
+                    "   inventory - list all items in your inventory\n" +
+                    "   read - read a letter or a book\n");
+        } else if (command.contains(".")) {
+            String targetName = findSubstringBeforeDot(command); // retrieve the target.
+            String actionName = findSubstringAfterDot(command); // retrieve the action.
+            Actor target = findInventory(targetName);
+            if (null != target) {
+                // let the target to process the action.
+                target.processCommand(this, actionName, args);
+            } else {
+                System.out.println("There's no " + targetName + " found in current room");
+            }
+        } else {
+            super.processCommand(this, command, args);
+        }
+    }
+
+    void take(String[] args) {
+        if (args.length < 1) {
+            // print an error.
+            System.out.println("What do you want to take?");
+            return;
+        }
+        currentRoom.take(this, args);
+    }
 }
 
 class Container extends Actor {
@@ -153,7 +241,7 @@ class Container extends Actor {
                     System.out.println(" Item " + itemName + " not found.");
                 } else {
                     System.out.println("You took the " + itemName);
-                    removeItemFromInventory(target);
+                    this.inventory.remove(target);
                     player.inventory.add(target);
                 }
             }
@@ -178,34 +266,16 @@ class Letter extends Actor {
 
 // Represents a room in the game world
 class Room extends Actor {
-    boolean locked = false;
-
-    Room upExit = null;
-    Room downExit = null;
-    Room northExit = null;
-    Room southExit = null;
-    Room eastExit = null;
-    Room westExit = null;
+    public boolean locked = false;
+    public Room upExit = null;
+    public Room downExit = null;
+    public Room northExit = null;
+    public Room southExit = null;
+    public Room eastExit = null;
+    public Room westExit = null;
 
     public void processCommand(Player player, String command, String[] args) {
         // for moving round the room
-        if ("n".equals(command)) {
-            go(player, northExit);
-        } else if ("s".equals(command)) {
-            go(player, southExit);
-        } else if ("u".equals(command)) {
-            go(player, upExit);
-        } else if ("d".equals(command)) {
-            go(player, downExit);
-        } else if ("e".equals(command)) {
-            go(player, eastExit);
-        } else if ("w".equals(command)) {
-            go(player, westExit);
-            // } else if ("search".equals(command)) {
-            // System.out.println(listInventory());
-        } else if ("h".equals(command) || "help".equals(command)) {
-            System.out.println(
-                    "your goal is to find what has happened in this house, , s stands for going south, n stands for north, w, stands for going north, e stands for going eask, l means look around ");
         } else if (command.contains(".")) {
             String targetName = findSubstringBeforeDot(command); // retrieve the target.
             String actionName = findSubstringAfterDot(command); // retrieve the action.
@@ -221,7 +291,7 @@ class Room extends Actor {
         }
     }
 
-    private void go(Player player, Room room) {
+    public void enter(Player player, Room room) {
         if (room == null) {
             System.out.println("You can't go that way.");
         } else if (!room.locked) {
@@ -359,13 +429,13 @@ public class Game {
             String[] commandArgs = Arrays.copyOfRange(parts, 1, parts.length);
 
             // Process the user input
-            if ("quit".equals(commandName)) {
+            if ("q".equals(commandName) || "quit".equals(commandName)) {
                 System.out.println("Game Over!"); // if user enter "quit" game over= true
                 gameOver = true;
             } else if ("welcome".equals(commandName)) {
                 printWelcome();
             } else {
-                player.currentRoom.processCommand(player, commandName, commandArgs); // need to use current room to
+                player.processCommand(commandName, commandArgs); // need to use current room to
                                                                                      // process command
             }
         }
